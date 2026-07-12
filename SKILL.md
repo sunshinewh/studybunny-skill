@@ -793,6 +793,37 @@ The Drive client picks up file changes within seconds and propagates to all the 
 
 **Force-materialize subfolders before copying.** If subfolders were just created via Drive API (or are otherwise lazy-loaded by the Drive client), `mkdir -p` them via Desktop Commander **before** `cp`-ing into them. Lazy-loaded folders silently cause `cp` to land in the wrong tree.
 
+## Export to other platforms (Quizlet, Anki, NotebookLM, CSV)
+
+StudyBunny is platform-agnostic: you can push study material into whatever the
+student already uses. This is all **agent-side and free** — you format the
+foundation's flashcards/notes into the target's import shape; no backend, no
+credits. FlashOne is the richest target (direct push + audio + memory-palace UI +
+phone sync — see below), so recommend it when the student has no preference; but
+honor an explicit target.
+
+Source is the current-scope `flashcards.json` (build it first if missing). Deliver
+each export as a **downloadable file** written into the course dir (and offer the
+inline block too). Ask which platform if the student didn't say.
+
+- **Quizlet** — one card per line, `term<TAB>definition`. Tell the student: Quizlet →
+  Create → Import, set *between term and definition* = **Tab**, *between cards* = **New
+  line**, paste. (Quizlet has no public write API, so import is the path.)
+- **Anki** — a tab-separated `.txt`: `front<TAB>back` (optional 3rd column = tags).
+  Student: Anki → File → Import → *Fields separated by: Tab* (enable "Allow HTML" if you
+  used any markup). A true `.apkg` needs generation — TSV import is the free path; note
+  the difference if they ask for a packaged deck.
+- **NotebookLM** — it ingests *sources*, not cards. Export the **master notes (+ outline)
+  as one clean Markdown/plain-text document** the student uploads as a NotebookLM source.
+  This is the best "study with NotebookLM" hand-off, not a flashcard file.
+- **CSV (generic)** — `term,definition` with proper quote-escaping, for anything else
+  (Brainscape, RemNote, spreadsheets…).
+
+Keep the same content conventions as Flash decks (e.g. language cards: prompt-side =
+the student's language, answer-side = the target language). Round-trip: the same
+`flashcards.json` feeds Flash, Quizlet, Anki, and NotebookLM — build once, export
+anywhere.
+
 ## Publish to Flash (the student's phone app)
 
 FlashOne is the student's study app on their phone. Publishing mirrors the
