@@ -22,7 +22,7 @@ agent's method, out in the open so you can read exactly what it does before you 
 Full step-by-step for each agent: **[studybunny.ai/install](https://studybunny.ai/install)**
 
 In short:
-1. **Add the connector** to your agent: `https://mcp.studybunny.ai` (sign in with Google).
+1. **Add the connector** to your agent: `https://mcp.studybunny.ai/mcp` (sign in with Google).
 2. **Install this skill** — download the packaged version from
    [studybunny.ai/skill.zip](https://studybunny.ai/skill.zip), or clone this repo.
 3. **Ask your agent** to build flashcards, a memory palace, or a study bundle from your material.
@@ -31,7 +31,7 @@ In short:
 
 Your agent runs the pipeline client-side: **sources → lossless notes → outlines →
 flashcards / memory palaces → pushed to your flashcard app**. The
-[StudyBunny connector](https://mcp.studybunny.ai) gives it the tools (link your Flash
+[StudyBunny connector](https://mcp.studybunny.ai/mcp) gives it the tools (link your Flash
 account, push decks, generate mnemonic images, and more); this skill gives it the method.
 
 ## Free vs. paid
