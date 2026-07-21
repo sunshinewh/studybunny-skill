@@ -907,26 +907,48 @@ every card:
     `il cane\n%%/ˈkaːne/%%` shows the IPA, speaks "il cane".
   - `<!--text-->` → **spoken, not shown** (rare — "say it but don't display it").
 
-**Card & deck images — two paths, prefer the free one.**
-- **FREE (default): you generate, we just load it.** If you (the host agent)
-  can produce images yourself — ChatGPT, Gemini, Grok — generate the art and push
-  the bytes via `flash.set_card_image` / `flash.set_deck_image` (`imageBase64` +
-  `mimeType`, or a `sourceUrl` to re-host). Costs the student **nothing** (uses
-  your own subscription). This is the default whenever you're image-capable.
-- **CREDITS (fallback): FlashOne generates.** If you **can't** generate images
-  (e.g. you are Claude), or the student wants FlashOne's curated model, use
-  `flash.generate_card_image` / `flash.generate_deck_image` — you supply the
-  prompt, FlashOne generates and attaches. This **spends the student's FlashOne
-  image credits** (tiered by model: `gpt-image-2` "Best" = 2, `gpt-image-1-mini`
-  "Fast" = 1). **Tell the student it costs credits before calling**; check
-  `flash.image_credits` if unsure. A low balance fails with a message to add
-  credits at flashone.ai.
+**Card & deck images — three paths, cheapest first.** Walk down this ladder and
+stop at the first path that fits; only spend credits as a last resort.
 
-Both paths are per-card (add/swap one image without rebuilding the deck). Default
+1. **FREE — real photo (Pexels).** For any real-world subject (a dog, a sunrise,
+   an espresso cup, a landmark), call `flash.search_images` (Pexels, free),
+   read each result's `alt` to pick the best match, then attach it with
+   `flash.set_card_image` / `flash.set_deck_image` using the result's `imageUrl`
+   as `sourceUrl`. Zero credits, zero image tokens. Try this **first** for
+   concrete nouns.
+2. **FREE — you generate, we just load it.** If you (the host agent) can produce
+   images yourself — ChatGPT, Gemini, Grok — generate the art (optionally using a
+   photo the student uploaded into the chat as your own reference) and push the
+   bytes via `flash.set_card_image` / `flash.set_deck_image` (`imageBase64` +
+   `mimeType`, or a `sourceUrl` to re-host). Costs the student **nothing** — it
+   uses their own ChatGPT/Gemini subscription, not FlashOne tokens. Default
+   whenever you're image-capable and need a made-up/stylised scene.
+3. **CREDITS — FlashOne generates (fallback).** If you **can't** generate images
+   (e.g. you are Claude) and no stock photo fits, use `flash.generate_card_image`
+   / `flash.generate_deck_image` — you supply the prompt, FlashOne generates and
+   attaches. **Spends the student's FlashOne image credits** (1 credit on the
+   fast default `gpt-image-1-mini`; premium models go through the `_async` tools).
+   **Tell the student it costs credits before calling**; check
+   `flash.image_credits` if unsure. A low balance fails with a message to add
+   credits at flashone.ai.
+
+**Image-to-image — memory palace from the student's own photos.** The Roman-room
+method works *better* when the loci are places the student actually knows, and it
+doesn't matter whether the final image is real or stylised. So when a student
+uploads photos of their apartment, a local café, a street in Trieste — their ugly
+tourist snapshots — you can turn each into a vivid, memorable scene:
+- **If you're image-capable (ChatGPT/Gemini/Grok):** generate from their photo
+  yourself and push via `set_card_image` — free, uses their subscription.
+- **If you're Claude:** pass their photo(s) as `inputImages` to
+  `flash.generate_card_image` (base64 or `sourceUrl`, up to 4). FlashOne runs
+  image-to-image and attaches the result — spends 1 credit, fast model only
+  (input photos aren't supported on the premium `_async` path yet).
+Either way, one transformed locus image per card in walk order, plus a cover that
+IS the room.
+
+All paths are per-card (add/swap one image without rebuilding the deck). Default
 to the **front**; the app renders the back with a front fallback (`back ??
-front`), so a front-only image shows on both faces. For **memory-palace decks**:
-one mnemonic image per card (the locus cue) in walk order + a deck cover that IS
-the room.
+front`), so a front-only image shows on both faces.
 
 **Deck trees.** Decks nest: `flash.create_deck` with `parentDeckId` makes
 tree containers (course root → week decks → card decks), and the Flash
