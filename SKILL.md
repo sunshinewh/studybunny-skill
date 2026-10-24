@@ -951,6 +951,37 @@ All paths are per-card (add/swap one image without rebuilding the deck). Default
 to the **front**; the app renders the back with a front fallback (`back ??
 front`), so a front-only image shows on both faces.
 
+**Image shape.** FlashOne's card body is portrait (~0.68 wide:tall). Generated
+card images default to portrait (1024x1536) so they fill the card; deck covers
+default to square. Keep words out of image prompts ("no text, no labels"):
+models draw fake text, and the card already shows the question. Put labels in
+the card text, or in a diagram you draw yourself and push with `set_card_image`.
+
+**Demo decks (an ad, a screen capture, a walkthrough).** Made-up content never
+goes in the student's own Flash account. Use a FlashOne **demo account** the
+user owns: `flash.demo_accounts` lists them (and which account the tools act
+on now); `flash.create_demo_account` makes one (synthetic email, starts with
+image credits); `flash.use_account` with the demo uid points every `flash.*`
+tool at it for up to 4 hours, then `flash.use_account` with `mine` switches
+back (do it as soon as the demo work is done, and say which account you are
+writing to). The path that worked for the FlashOne ad deck:
+1. Write the character's raw material as the input (e.g. her lecture notes),
+   `drop_zone.add` it, `ai.generate_notes` → master notes (`notes.create`),
+   `decks.create` + `ai.generate_flashcards` from the notes.
+2. Curate to a tight deck (12-15 cards) that matches the ad's beat: short
+   fronts readable at a glance on a phone, short backs (the flip line in the
+   ad is the first card's back, e.g. "Wrist drop: which nerve?" → "Radial nerve").
+   Check every fact.
+3. `flash.push_deck` into the demo account, then images: one consistent style
+   across the deck, portrait, premium model via `flash.generate_card_image_async`.
+   Look at every image; redo weak or inaccurate ones. Where accuracy matters
+   more than the model can deliver (a full nerve plexus, a circuit), draw the
+   diagram yourself and push it with `set_card_image`; the back side can carry a
+   labelled version.
+4. The last card is the payoff. Give the deck a cover from card 1, not the payoff.
+5. Record it with the founder's screen flow (FounderBunny growth screen library)
+   and watch the frames before showing anyone.
+
 **Deck trees.** Decks nest: `flash.create_deck` with `parentDeckId` makes
 tree containers (course root → week decks → card decks), and the Flash
 decks page renders the hierarchy natively with per-depth colors. For a
