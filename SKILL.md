@@ -99,7 +99,7 @@ derivatives wait for an explicit ask.
 - `flashcards.json` — atomic recall items
 - `memory-chunks.md` — Method of Loci / peg / chain / Roman Room mappings
 - `audio-script.md` — TTS-optimized prose (no markdown, no bullets, no dividers, expanded abbreviations, natural prosody) — the script for audio-notes
-- `audio-notes.mp3` — high-quality narrated audio generated via the studyapi MCP's `tts.synthesize` (defaults to Grok / xAI for cheaper audio, automatic fallback to ElevenLabs on error). **Compression target ~30% of source runtime** — a review podcast, not a re-narration. Has a real per-character cost; never fires in process or weekly-synthesis modes
+- `audio-notes.mp3` — high-quality narrated audio generated via the StudyBunny connector's `tts.synthesize` (defaults to Grok / xAI for cheaper audio, automatic fallback to ElevenLabs on error). **Compression target ~30% of source runtime** — a review podcast, not a re-narration. Has a real per-character cost; never fires in process or weekly-synthesis modes
 - `audio/<bundle-id>_NN_section.mp3` — **audio bundle**: a complete-outline MP3 plus numbered per-section MP3s (each one is the section's outline-slice + reading combined). Use this when the student wants both A) one continuous listen of the whole course in its briefest form AND B) per-section deep dives that can be played in order or repeated individually. Different shape than `audio-notes.mp3` (which is a compressed review podcast). See "Audio bundle" section below for the build pipeline.
 - `course/exam-prep/cheat-sheet-outline.md` — course-level dense outline ready to memorize
 - `course/exam-prep/memory-walks.md` — consolidated cross-resource memory walks
@@ -225,14 +225,14 @@ Some students take multi-class programs (e.g. a multi-semester MBA, a year-long 
 ## Every invocation: do this in order
 
 1. **Tool check.** Verify the tools you need for the requested task.
-   - **studyapi MCP** (provides `drop_zone.*`, `notes.*`, `flashcards.*`, `bundles.*`, `ai.generate_*`, `tts.*`, `flash.*`) — required for the core capture + synthesis pipeline, audio narration, AND publishing into the FlashOne app. **Works on all surfaces** (Claude Code via remote HTTP, claude.ai chat, Cowork) — one server, one OAuth identity. If missing, walk the student through installing the studyapi connector:
-     > Open **Customize → Add custom connector**, paste this URL, click Add, then Connect, then sign in with Google:
-     > `https://mcp.studyapi.org/mcp`
+   - **StudyBunny connector** (provides `drop_zone.*`, `notes.*`, `flashcards.*`, `bundles.*`, `ai.generate_*`, `tts.*`, `flash.*`) — required for the core capture + synthesis pipeline, audio narration, AND publishing into the FlashOne app. **Works on all surfaces** (Claude Code via remote HTTP, claude.ai chat, Cowork) — one server, one Google sign-in. If missing, walk the student through adding it:
+     > Open **Customize → Add custom connector**, paste this address, click Add, then Connect, then sign in with Google:
+     > `https://mcp.studybunny.ai/mcp`
      > Tell me "connected" when done.
 
-     Re-check after they confirm. If still missing, point them to `https://studyapi.org/install`.
-   - **Hierarchy is mandatory on the studyapi drop zone.** Every `drop_zone_add` takes `sourcePath: ["<course>", "<bucket>", "<slug>"]` — the item's place in the student's tree, mirroring the folder it came from (a Drive folder chain, `resources/<bucket>/<slug>`, `mentor-sessions/<bucket>/<slug>`). `local_file` sources default to the file's directory chain when you omit it; everything else defaults to unfiled, which is a filing failure — never leave a classified item unfiled. A segment may not contain `/` (the server refuses it by name). Read one node of the tree with `drop_zone_list({ pathPrefix: "<course>/<bucket>" })` — that node and everything under it, grouped by node, newest first; it cannot be combined with `type`/`status`. Every listed item carries `sourcePath` + `sourcePathKey` (`""` = unfiled) so you can audit what still needs filing.
-   - **Audio narration** is built into the studyapi MCP via `tts.synthesize` — defaults to Grok (xAI, cheaper), automatic fallback to ElevenLabs when Grok fails. **No separate ElevenLabs MCP is needed.** Once the studyapi connector is connected, `tts.synthesize` is the primary audio path on every surface. REST fallback exists only for when the MCP isn't installed or the OAuth flow can't complete — see "Audio fallback chain" step 2.
+     Re-check after they confirm. If still missing, point them to `https://studybunny.ai/install`.
+   - **Hierarchy is mandatory on the StudyBunny drop zone.** Every `drop_zone_add` takes `sourcePath: ["<course>", "<bucket>", "<slug>"]` — the item's place in the student's tree, mirroring the folder it came from (a Drive folder chain, `resources/<bucket>/<slug>`, `mentor-sessions/<bucket>/<slug>`). `local_file` sources default to the file's directory chain when you omit it; everything else defaults to unfiled, which is a filing failure — never leave a classified item unfiled. A segment may not contain `/` (the server refuses it by name). Read one node of the tree with `drop_zone_list({ pathPrefix: "<course>/<bucket>" })` — that node and everything under it, grouped by node, newest first; it cannot be combined with `type`/`status`. Every listed item carries `sourcePath` + `sourcePathKey` (`""` = unfiled) so you can audit what still needs filing.
+   - **Audio narration** is built into the StudyBunny connector via `tts.synthesize` — defaults to Grok (xAI, cheaper), automatic fallback to ElevenLabs when Grok fails. **No separate ElevenLabs MCP is needed.** Once the StudyBunny connector is connected, `tts.synthesize` is the primary audio path on every surface. REST fallback exists only for when the MCP isn't installed or the OAuth flow can't complete — see "Audio fallback chain" step 2.
    - **Browser tool** (Claude in Chrome by default; see "When browser control isn't ready") — required only for portal crawling and authenticated fetches. Missing browser tools never block text-only work.
 
 2. **Read state.** Open `course/state.md`. It tells you what's done, what's pending, what student decisions persist, what orphans have been explained.
@@ -526,7 +526,7 @@ If a required foundation level isn't current, refuse the derivative and surface 
 - **Memory-technique mapping** — foundation(s) → `memory-chunks.md` per resource, OR a consolidated walk at `course/exam-prep/memory-walks.md` for sprint-level or whole-course requests. Don't force a technique where none fits.
 - **Cheat-sheet outline** — course master → `course/exam-prep/cheat-sheet-outline.md`. Course-level only.
 - **Dense listenable form** — course master notes → already in `course/exam-prep/course/notes.md`. If a tighter, faster-to-listen rewrite is wanted, produce `course/exam-prep/dense-listenable.md`.
-- **Audio** — `notes.md` at requested scope → `audio-script.md` (TTS-optimized, no markdown, expanded abbreviations, natural prosody, transitions like *"First… The key reframe is… Now here's the part to remember…"*) → `audio-notes.mp3` (generated via the studyapi MCP's `tts.synthesize`).
+- **Audio** — `notes.md` at requested scope → `audio-script.md` (TTS-optimized, no markdown, expanded abbreviations, natural prosody, transitions like *"First… The key reframe is… Now here's the part to remember…"*) → `audio-notes.mp3` (generated via the StudyBunny connector's `tts.synthesize`).
   - **Provider:** defaults to Grok (xAI) — significantly cheaper per character. Automatic fallback to ElevenLabs when Grok fails (transport error, rate limit, voice not available). **Always check the `fellBack` field in the response** to confirm whether Grok actually served the call or it silently failed over to (expensive) ElevenLabs — the cost difference matters. If Grok is rate-limiting and the student needs audio immediately, force ElevenLabs with `provider: 'elevenlabs', forceProvider: true` rather than waiting on retry.
   - **Chunking — caller cap is 3,500 chars per `tts.synthesize` call.** The MCP transport tops out at ~45s round-trip; server-side chunked synthesis (2× ~1,750-char chunks, sequential) fits inside that budget. The schema enforces this — calls over 3,500 chars are rejected with 400. **Pre-chunk by section at ≤3,500 chars and the server handles internal splitting + MP3 concat transparently** (caller never needs `ffmpeg`).
   - **Parallel calls — keep low (1–3).** Grok rate-limits per API key, so 4+ concurrent MCP calls cause the largest one to time out under contention. Sequential or 2-way parallel is the bulletproof zone. On timeout, the server still completes the synth and writes the dedup row, so a **retry of the same text hits the cache in <1s** (`reused: true`) — use this as the recovery pattern, not blind parallelism.
@@ -534,7 +534,7 @@ If a required foundation level isn't current, refuse the derivative and surface 
   - **Voice:** use a high-quality long-form narrator voice by default (Grok's `eve` is a solid default; ElevenLabs has 40+ voices). Respect any voice preference saved in `course/state.md` under `preferences.audio_voice`. Student can override per-invocation ("male voice," "softer," etc.).
   - **Scope:** per-resource → `resources/<bucket>/<slug>/{audio-script.md, audio-notes.mp3}`. Per-bucket → `course/exam-prep/<scope>-audio-{script.md, notes.mp3}`. Course-wide → `course/exam-prep/dense-notes-audio.mp3` paired with the existing `dense-notes.md`.
   - **Cost discipline:** Grok TTS is cheap (~$0.005 per 1k chars at wholesale); ElevenLabs is the expensive fallback (~$0.05+). Per-resource (~7–10k chars) is fine; sprint-level (~70–100k chars) deserves a heads-up; course-level (200k+ chars) needs explicit confirmation. **Estimate cost and tell the student before generating anything beyond a single resource.**
-  - **Dedup:** studyapi server-side caches by content hash (provider + text + voice + settings). Same input within 24h returns the cached URL — no double charge. This is what makes parallel chunked synthesis safe to retry on rate-limit errors.
+  - **Dedup:** StudyBunny server-side caches by content hash (provider + text + voice + settings). Same input within 24h returns the cached URL — no double charge. This is what makes parallel chunked synthesis safe to retry on rate-limit errors.
   - **Playback on macOS:** `.mp3` files default to Apple Music, which sometimes hangs or fails to play. Don't hand the student a plain file path — hand them a `file://` URL opened in Chrome via Desktop Commander: `osascript -e 'open location "file:///absolute/path/to/audio-notes.mp3"'`. Chrome plays inline, no Apple Music involved.
 
 ## Format triplets
@@ -725,32 +725,10 @@ A single source MD can populate all three by re-using its `### Outline` / `### R
 
 ## Audio fallback chain (when narration paths break)
 
-The studyapi MCP's `tts.synthesize` is the primary path: Grok-default with automatic ElevenLabs fallback, all server-side. The remote MCP at `mcp.studyapi.org/mcp` works on every surface (Claude Code via remote HTTP, claude.ai chat, Cowork), so this is almost always available. The fallback chain below is for the edge case where the connector hasn't been installed yet or the OAuth handshake can't complete:
+The StudyBunny connector's `tts.synthesize` is the primary path: Grok-default with automatic ElevenLabs fallback, all server-side. The connector at `https://mcp.studybunny.ai/mcp` works on every surface (Claude Code via remote HTTP, claude.ai chat, Cowork), so this is almost always available. The fallback chain below is for the edge case where the connector hasn't been added yet or the Google sign-in can't complete:
 
-1. **studyapi `tts.synthesize`** (primary, all surfaces) — both providers built in, dedup automatic, user-scoped via OAuth-CIMD.
-2. **studyapi REST directly** — if the MCP isn't loaded but you have a web-fetch / HTTP capability and the student's portal key, call the API directly. Same Grok→ElevenLabs fallback as the MCP. Use this only as a stopgap until the student installs the studyapi connector:
-
-   ```
-   POST https://study-api-dm7uif7mla-uc.a.run.app/v1/tts/synthesize
-   Headers:
-     X-Api-Key: <studyapi app key>
-     Authorization: Bearer <student's portal key — sk_live_…>
-     Content-Type: application/json
-   Body:
-     {
-       "text": "<TTS-optimized script content>",
-       "language": "en",          // BCP-47 or "auto"; Grok-only
-       "provider": "grok",        // default — omit to use Grok; cheaper
-       "voiceId": "eve"           // Grok: eve|ara|leo|rex|sal. Omit for default.
-     }
-   Response: { "data": { "audioUrl": "https://storage.googleapis.com/...mp3", "expiresAt": <ms>, "provider": "grok"|"elevenlabs", "charCount": N, "byteCount": N, "reused": bool } }
-   ```
-
-   The audio URL is signed for 24 hours; share it back to the student or embed in chat. If they ask the same text + voice + provider again within 24h, the response will have `reused: true` and won't re-charge.
-
-   **App key:** there is no public app key any more (the old one was turned off on 2026-11-12). Use the StudyBunny connector (`https://mcp.studybunny.ai`) for audio; it holds its own key.
-
-   **Student portal key:** ask the student once per session if you don't have it persisted, or check `course/state.md` `auth.studyapi_portal_key` if they've saved it. Treat it like a password — never echo it back; never log it.
+1. **StudyBunny `tts.synthesize`** (primary, all surfaces) — both providers built in, dedup automatic, scoped to the student's own sign-in.
+2. **Add the connector first.** There is no public app key and no direct-API shortcut: if the connector is missing, walk the student through adding `https://mcp.studybunny.ai/mcp` (see "Tool check" above). Never ask a student for keys or passwords.
 3. **ElevenLabs Studio in the browser** — paste the `audio-script.md` content into [elevenlabs.io](https://elevenlabs.io) Studio, pick a voice, generate, download. Same ElevenLabs account; no MCP needed. ~2 minutes of student effort.
 4. **macOS Speak Selection** (System Settings → Accessibility → Spoken Content → Speak Selection) — free, immediate, robotic-but-usable. Select the script text and press the shortcut. Good for the run-while-listening case when audio quality isn't critical.
 5. **Plain text only** — produce `audio-script.md` (the TTS-optimized script) and tell the student to paste it into whichever TTS tool they prefer. The script itself is the durable artifact; the mp3 is a convenience.
@@ -1108,13 +1086,11 @@ last_drop_zone_scan: 2026-05-11T14:00:00Z
 preferences:
   audio_voice: eve              # Grok voice id (eve|ara|leo|rex|sal) or ElevenLabs voice id
   audio_provider: grok          # grok | elevenlabs — default to grok unless student says otherwise
-auth:
-  studyapi_portal_key: sk_live_••••••••••••  # masked when displayed; full key stored here
 hard_rules_acknowledged: false   # flips true once the student says "yes I see them" to grade-weights / pass-fail rules surfaced from syllabus
 ---
 ```
 
-Keys are append-only — new ones can be added without breaking existing state files. When you read state.md and a key is absent, treat as default (e.g. missing `preferences.audio_provider` → grok). Never echo `auth.studyapi_portal_key` in chat; mask middle characters when surfacing for confirmation.
+Keys are append-only — new ones can be added without breaking existing state files. When you read state.md and a key is absent, treat as default (e.g. missing `preferences.audio_provider` → grok). Never store keys or passwords in state.md; the StudyBunny connector holds the student's sign-in.
 
 ## Tone with the student
 
