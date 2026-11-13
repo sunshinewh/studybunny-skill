@@ -748,7 +748,7 @@ The studyapi MCP's `tts.synthesize` is the primary path: Grok-default with autom
 
    The audio URL is signed for 24 hours; share it back to the student or embed in chat. If they ask the same text + voice + provider again within 24h, the response will have `reused: true` and won't re-charge.
 
-   **App key (public, hard-coded by design — like an OAuth client_id):** `sa_live_SJM-6Y_NYCms4e3fnOpy2SkzYGxZJX1oeBpcmPRdC8w`
+   **App key:** there is no public app key any more (the old one was turned off on 2026-11-12). Use the StudyBunny connector (`https://mcp.studybunny.ai`) for audio; it holds its own key.
 
    **Student portal key:** ask the student once per session if you don't have it persisted, or check `course/state.md` `auth.studyapi_portal_key` if they've saved it. Treat it like a password — never echo it back; never log it.
 3. **ElevenLabs Studio in the browser** — paste the `audio-script.md` content into [elevenlabs.io](https://elevenlabs.io) Studio, pick a voice, generate, download. Same ElevenLabs account; no MCP needed. ~2 minutes of student effort.
